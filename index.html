@@ -3,72 +3,262 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CeeLo/456 Game</title>
+  <title>CeeLo Casino</title>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      text-align: center;
-      background-color: #f4f4f9;
+    @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Poppins:wght@400;600&display=swap');
+
+    :root {
+      --primary: #2c3e50;
+      --accent: #e74c3c;
+      --gold: #f1c40f;
+      --text: #2c3e50;
+      --background: #ecf0f1;
+      --card: #ffffff;
+    }
+
+    * {
       margin: 0;
       padding: 0;
+      box-sizing: border-box;
     }
+
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: var(--background);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 2rem;
+      background-image: 
+        radial-gradient(circle at 10px 10px, rgba(44, 62, 80, 0.05) 2px, transparent 0),
+        radial-gradient(circle at 25px 25px, rgba(44, 62, 80, 0.05) 2px, transparent 0);
+      background-size: 35px 35px;
+    }
+
     h1 {
-      margin-top: 20px;
+      font-family: 'Playfair Display', serif;
+      color: var(--primary);
+      font-size: 3rem;
+      margin-bottom: 1.5rem;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
     }
+
     .container {
-      margin: 20px auto;
-      max-width: 600px;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 2rem;
+      background: var(--card);
+      border-radius: 20px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.1);
     }
-    .dice {
-      display: inline-block;
-      margin: 10px;
-      width: 50px;
-      height: 50px;
-      line-height: 50px;
-      font-size: 24px;
-      border: 2px solid #333;
-      border-radius: 10px;
-      background-color: white;
+
+    .money-display {
+      background: var(--primary);
+      color: white;
+      padding: 1rem 2rem;
+      border-radius: 15px;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 1.5rem;
+      margin-bottom: 2rem;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
     }
+
+    .money-display i {
+      color: var(--gold);
+    }
+
     .controls {
-      margin: 20px 0;
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      align-items: center;
+      margin-bottom: 2rem;
     }
+
+    .bet-input {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: var(--background);
+      padding: 0.5rem 1rem;
+      border-radius: 10px;
+    }
+
+    input[type="number"] {
+      width: 100px;
+      padding: 0.5rem;
+      border: 2px solid var(--primary);
+      border-radius: 8px;
+      font-size: 1rem;
+      outline: none;
+      transition: all 0.3s ease;
+    }
+
+    input[type="number"]:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(231, 76, 60, 0.2);
+    }
+
     button {
-      padding: 10px 20px;
-      font-size: 16px;
-      margin: 5px;
+      background: var(--accent);
+      color: white;
+      border: none;
+      padding: 1rem 2rem;
+      border-radius: 10px;
+      font-size: 1rem;
+      font-weight: 600;
       cursor: pointer;
+      transition: all 0.3s ease;
+      text-transform: uppercase;
+      letter-spacing: 1px;
     }
-    .result {
-      margin-top: 20px;
-      font-size: 18px;
+
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(231, 76, 60, 0.3);
+    }
+
+    button:active {
+      transform: translateY(0);
+    }
+
+    button:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+
+    .dice-area {
+      display: flex;
+      justify-content: space-around;
+      margin: 2rem 0;
+      gap: 2rem;
+    }
+
+    .dice-section {
+      flex: 1;
+      padding: 1.5rem;
+      background: var(--background);
+      border-radius: 15px;
+      text-align: center;
+    }
+
+    .dice-section h2 {
+      margin-bottom: 1rem;
+      color: var(--primary);
+      font-size: 1.5rem;
+    }
+
+    .dice-container {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      min-height: 80px;
+    }
+
+    .dice {
+      width: 60px;
+      height: 60px;
+      background: white;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
       font-weight: bold;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      transition: transform 0.3s ease;
     }
-    .money {
-      font-size: 20px;
-      margin-top: 20px;
+
+    .dice.rolling {
+      animation: rollDice 0.3s ease infinite;
+    }
+
+    @keyframes rollDice {
+      0% { transform: rotate(0deg); }
+      25% { transform: rotate(-10deg); }
+      75% { transform: rotate(10deg); }
+      100% { transform: rotate(0deg); }
+    }
+
+    .result {
+      text-align: center;
+      font-size: 1.5rem;
+      font-weight: 600;
+      margin-top: 2rem;
+      padding: 1rem;
+      border-radius: 10px;
+      transition: all 0.3s ease;
+    }
+
+    .result.win {
+      background: #2ecc71;
+      color: white;
+    }
+
+    .result.lose {
+      background: var(--accent);
+      color: white;
+    }
+
+    .result.draw {
+      background: var(--primary);
+      color: white;
+    }
+
+    @media (max-width: 768px) {
+      .container {
+        padding: 1rem;
+      }
+
+      .dice-area {
+        flex-direction: column;
+      }
+
+      h1 {
+        font-size: 2rem;
+      }
+
+      .controls {
+        flex-direction: column;
+      }
     }
   </style>
 </head>
 <body>
-  <h1>CeeLo/456 Game</h1>
   <div class="container">
-    <div class="money">Your Money: $<span id="player-money">1000</span></div>
+    <h1>CeeLo Casino</h1>
+    
+    <div class="money-display">
+      <i class="fas fa-coins"></i>
+      <span>$<span id="player-money">1000</span></span>
+    </div>
+
     <div class="controls">
-      <label for="bet-amount">Bet Amount ($): </label>
-      <input type="number" id="bet-amount" min="1" value="10">
-      <button id="start-round">Start Round</button>
-    </div>
-    <div class="dice-container">
-      <div class="player-dice">
-        <h2>Your Roll:</h2>
-        <div id="player-dice"></div>
+      <div class="bet-input">
+        <label for="bet-amount">Bet Amount:</label>
+        <input type="number" id="bet-amount" min="1" value="10">
       </div>
-      <div class="ai-dice">
-        <h2>AI's Roll:</h2>
-        <div id="ai-dice"></div>
+      <button id="start-round">
+        <i class="fas fa-dice"></i> Roll Dice
+      </button>
+    </div>
+
+    <div class="dice-area">
+      <div class="dice-section">
+        <h2>Your Roll</h2>
+        <div id="player-dice" class="dice-container"></div>
+      </div>
+      
+      <div class="dice-section">
+        <h2>AI's Roll</h2>
+        <div id="ai-dice" class="dice-container"></div>
       </div>
     </div>
+
     <div class="result" id="result"></div>
   </div>
 
@@ -81,6 +271,7 @@
     const resultElement = document.getElementById('result');
 
     let playerMoney = 1000;
+    let isRolling = false;
 
     function rollDice() {
       return Math.floor(Math.random() * 6) + 1;
@@ -97,30 +288,44 @@
       } else if (rolls[0] + 1 === rolls[1] && rolls[1] + 1 === rolls[2]) {
         return { type: 'straight', value: rolls[2] };
       } else {
-        return null; // Invalid roll, must reroll
+        return null;
       }
     }
 
+    function createDice(number) {
+      const diceDiv = document.createElement('div');
+      diceDiv.className = 'dice';
+      diceDiv.textContent = number;
+      return diceDiv;
+    }
+
     function animateDice(diceContainer, rolls, callback) {
-      let animationFrames = 20;
+      const animationFrames = 20;
       let currentFrame = 0;
+      
+      diceContainer.innerHTML = '';
+      const diceElements = [
+        createDice('?'),
+        createDice('?'),
+        createDice('?')
+      ];
+      
+      diceElements.forEach(dice => {
+        dice.classList.add('rolling');
+        diceContainer.appendChild(dice);
+      });
+
       const interval = setInterval(() => {
-        diceContainer.innerHTML = '';
-        for (let i = 0; i < 3; i++) {
-          const diceDiv = document.createElement('div');
-          diceDiv.className = 'dice';
-          diceDiv.textContent = Math.floor(Math.random() * 6) + 1;
-          diceContainer.appendChild(diceDiv);
-        }
+        diceElements.forEach(dice => {
+          dice.textContent = Math.floor(Math.random() * 6) + 1;
+        });
+        
         currentFrame++;
         if (currentFrame >= animationFrames) {
           clearInterval(interval);
           diceContainer.innerHTML = '';
           rolls.forEach(roll => {
-            const diceDiv = document.createElement('div');
-            diceDiv.className = 'dice';
-            diceDiv.textContent = roll;
-            diceContainer.appendChild(diceDiv);
+            diceContainer.appendChild(createDice(roll));
           });
           callback();
         }
@@ -164,40 +369,52 @@
     }
 
     startRoundButton.addEventListener('click', async () => {
+      if (isRolling) return;
+      
       const betAmount = parseInt(betAmountInput.value, 10);
       if (isNaN(betAmount) || betAmount <= 0 || betAmount > playerMoney) {
         alert('Please enter a valid bet amount.');
         return;
       }
 
+      isRolling = true;
+      startRoundButton.disabled = true;
+      resultElement.className = 'result';
+      
       playerDiceElement.innerHTML = '';
       aiDiceElement.innerHTML = '';
-      resultElement.textContent = '';
+      resultElement.textContent = 'Rolling...';
 
-      resultElement.textContent = 'You are rolling...';
       const playerResult = await rollUntilValid(playerDiceElement, 'You');
-
-      resultElement.textContent = 'AI is rolling...';
       const aiResult = await rollUntilValid(aiDiceElement, 'AI');
 
       const winner = determineWinner(playerResult, aiResult);
 
       if (winner === 'player') {
         playerMoney += betAmount;
-        resultElement.textContent = 'You win!';
+        resultElement.textContent = '🎉 You win! 🎉';
+        resultElement.className = 'result win';
       } else if (winner === 'ai') {
         playerMoney -= betAmount;
-        resultElement.textContent = 'AI wins!';
+        resultElement.textContent = '😔 AI wins!';
+        resultElement.className = 'result lose';
       } else {
-        resultElement.textContent = "It's a draw!";
+        resultElement.textContent = "🤝 It's a draw!";
+        resultElement.className = 'result draw';
       }
 
       playerMoneyElement.textContent = playerMoney;
 
       if (playerMoney <= 0) {
-        alert('Game over! You are out of money.');
-        startRoundButton.disabled = true;
+        setTimeout(() => {
+          alert('Game over! You are out of money.');
+          startRoundButton.disabled = true;
+        }, 1000);
+      } else {
+        startRoundButton.disabled = false;
       }
+      
+      isRolling = false;
     });
   </script>
 </body>
