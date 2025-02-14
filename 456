@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CeeLo/456 Game</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      background-color: #f4f4f9;
+      margin: 0;
+      padding: 0;
+    }
+    h1 {
+      margin-top: 20px;
+    }
+    .container {
+      margin: 20px auto;
+      max-width: 600px;
+    }
+    .dice {
+      display: inline-block;
+      margin: 10px;
+      width: 50px;
+      height: 50px;
+      line-height: 50px;
+      font-size: 24px;
+      border: 2px solid #333;
+      border-radius: 10px;
+      background-color: white;
+    }
+    .controls {
+      margin: 20px 0;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      margin: 5px;
+      cursor: pointer;
+    }
+    .result {
+      margin-top: 20px;
+      font-size: 18px;
+      font-weight: bold;
+    }
+    .money {
+      font-size: 20px;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <h1>CeeLo/456 Game</h1>
+  <div class="container">
+    <div class="money">Your Money: $<span id="player-money">1000</span></div>
+    <div class="controls">
+      <label for="bet-amount">Bet Amount ($): </label>
+      <input type="number" id="bet-amount" min="1" value="10">
+      <button id="start-round">Start Round</button>
+    </div>
+    <div class="dice-container">
+      <div class="player-dice">
+        <h2>Your Roll:</h2>
+        <div id="player-dice"></div>
+      </div>
+      <div class="ai-dice">
+        <h2>AI's Roll:</h2>
+        <div id="ai-dice"></div>
+      </div>
+    </div>
+    <div class="result" id="result"></div>
+  </div>
+
+  <script>
+    const playerMoneyElement = document.getElementById('player-money');
+    const betAmountInput = document.getElementById('bet-amount');
+    const startRoundButton = document.getElementById('start-round');
+    const playerDiceElement = document.getElementById('player-dice');
+    const aiDiceElement = document.getElementById('ai-dice');
+    const resultElement = document.getElementById('result');
+
+    let playerMoney = 1000;
+
+    function rollDice() {
+      return Math.floor(Math.random() * 6) + 1;
+    }
+
+    function getDiceResult(rolls) {
+      rolls.sort((a, b) => a - b);
+      if (rolls[0] === rolls[1] && rolls[1] === rolls[2]) {
+        return { type: 'triple', value: rolls[0] };
+      } else if (rolls[0] === rolls[1]) {
+        return { type: 'pair', value: rolls[2] };
+      } else if (rolls[1] === rolls[2]) {
+        return { type: 'pair', value: rolls[0] };
+      } else if (rolls[0] + 1 === rolls[1] && rolls[1] + 1 === rolls[2]) {
+        return { type: 'straight', value: rolls[2] };
+      } else {
+        return null; // Invalid roll, must reroll
+      }
+    }
+
+    function animateDice(diceContainer, rolls, callback) {
+      let animationFrames = 20;
+      let currentFrame = 0;
+      const interval = setInterval(() => {
+        diceContainer.innerHTML = '';
+        for (let i = 0; i < 3; i++) {
+          const diceDiv = document.createElement('div');
+          diceDiv.className = 'dice';
+          diceDiv.textContent = Math.floor(Math.random() * 6) + 1;
+          diceContainer.appendChild(diceDiv);
+        }
+        currentFrame++;
+        if (currentFrame >= animationFrames) {
+          clearInterval(interval);
+          diceContainer.innerHTML = '';
+          rolls.forEach(roll => {
+            const diceDiv = document.createElement('div');
+            diceDiv.className = 'dice';
+            diceDiv.textContent = roll;
+            diceContainer.appendChild(diceDiv);
+          });
+          callback();
+        }
+      }, 50);
+    }
+
+    function determineWinner(playerResult, aiResult) {
+      if (playerResult.type === 'triple' && aiResult.type !== 'triple') {
+        return 'player';
+      } else if (aiResult.type === 'triple' && playerResult.type !== 'triple') {
+        return 'ai';
+      } else if (playerResult.type === 'straight' && aiResult.type !== 'straight') {
+        return 'player';
+      } else if (aiResult.type === 'straight' && playerResult.type !== 'straight') {
+        return 'ai';
+      } else if (playerResult.type === 'pair' && aiResult.type !== 'pair') {
+        return 'player';
+      } else if (aiResult.type === 'pair' && playerResult.type !== 'pair') {
+        return 'ai';
+      } else if (playerResult.value > aiResult.value) {
+        return 'player';
+      } else if (aiResult.value > playerResult.value) {
+        return 'ai';
+      } else {
+        return 'draw';
+      }
+    }
+
+    async function rollUntilValid(diceContainer, playerName) {
+      let validRoll = null;
+      while (!validRoll) {
+        const rolls = [rollDice(), rollDice(), rollDice()];
+        await new Promise(resolve => animateDice(diceContainer, rolls, resolve));
+        validRoll = getDiceResult(rolls);
+        if (!validRoll) {
+          resultElement.textContent = `${playerName} rolled invalid dice and must reroll...`;
+          await new Promise(resolve => setTimeout(resolve, 1000));
+        }
+      }
+      return validRoll;
+    }
+
+    startRoundButton.addEventListener('click', async () => {
+      const betAmount = parseInt(betAmountInput.value, 10);
+      if (isNaN(betAmount) || betAmount <= 0 || betAmount > playerMoney) {
+        alert('Please enter a valid bet amount.');
+        return;
+      }
+
+      playerDiceElement.innerHTML = '';
+      aiDiceElement.innerHTML = '';
+      resultElement.textContent = '';
+
+      resultElement.textContent = 'You are rolling...';
+      const playerResult = await rollUntilValid(playerDiceElement, 'You');
+
+      resultElement.textContent = 'AI is rolling...';
+      const aiResult = await rollUntilValid(aiDiceElement, 'AI');
+
+      const winner = determineWinner(playerResult, aiResult);
+
+      if (winner === 'player') {
+        playerMoney += betAmount;
+        resultElement.textContent = 'You win!';
+      } else if (winner === 'ai') {
+        playerMoney -= betAmount;
+        resultElement.textContent = 'AI wins!';
+      } else {
+        resultElement.textContent = "It's a draw!";
+      }
+
+      playerMoneyElement.textContent = playerMoney;
+
+      if (playerMoney <= 0) {
+        alert('Game over! You are out of money.');
+        startRoundButton.disabled = true;
+      }
+    });
+  </script>
+</body>
+</html>
