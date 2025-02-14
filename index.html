@@ -279,17 +279,27 @@
 
     function getDiceResult(rolls) {
       rolls.sort((a, b) => a - b);
+      // Check for 4-5-6 (automatic win)
+      if (rolls[0] === 4 && rolls[1] === 5 && rolls[2] === 6) {
+        return { type: 'automaticWin', value: 999 };
+      }
+      // Check for 1-2-3 (automatic loss)
+      if (rolls[0] === 1 && rolls[1] === 2 && rolls[2] === 3) {
+        return { type: 'automaticLoss', value: -999 };
+      }
+      // Check for triples
       if (rolls[0] === rolls[1] && rolls[1] === rolls[2]) {
         return { type: 'triple', value: rolls[0] };
-      } else if (rolls[0] === rolls[1]) {
-        return { type: 'pair', value: rolls[2] };
-      } else if (rolls[1] === rolls[2]) {
-        return { type: 'pair', value: rolls[0] };
-      } else if (rolls[0] + 1 === rolls[1] && rolls[1] + 1 === rolls[2]) {
-        return { type: 'straight', value: rolls[2] };
-      } else {
-        return null;
       }
+      // Check for pairs
+      if (rolls[0] === rolls[1]) {
+        return { type: 'pair', value: rolls[2] };
+      }
+      if (rolls[1] === rolls[2]) {
+        return { type: 'pair', value: rolls[0] };
+      }
+      // If no valid combination is found
+      return null;
     }
 
     function createDice(number) {
@@ -333,25 +343,34 @@
     }
 
     function determineWinner(playerResult, aiResult) {
-      if (playerResult.type === 'triple' && aiResult.type !== 'triple') {
-        return 'player';
-      } else if (aiResult.type === 'triple' && playerResult.type !== 'triple') {
-        return 'ai';
-      } else if (playerResult.type === 'straight' && aiResult.type !== 'straight') {
-        return 'player';
-      } else if (aiResult.type === 'straight' && playerResult.type !== 'straight') {
-        return 'ai';
-      } else if (playerResult.type === 'pair' && aiResult.type !== 'pair') {
-        return 'player';
-      } else if (aiResult.type === 'pair' && playerResult.type !== 'pair') {
-        return 'ai';
-      } else if (playerResult.value > aiResult.value) {
-        return 'player';
-      } else if (aiResult.value > playerResult.value) {
-        return 'ai';
-      } else {
+      // Check for automatic win/loss conditions first
+      if (playerResult.type === 'automaticWin') return 'player';
+      if (aiResult.type === 'automaticWin') return 'ai';
+      if (playerResult.type === 'automaticLoss') return 'ai';
+      if (aiResult.type === 'automaticLoss') return 'player';
+
+      // Compare triples (they beat any pair)
+      if (playerResult.type === 'triple' && aiResult.type !== 'triple') return 'player';
+      if (aiResult.type === 'triple' && playerResult.type !== 'triple') return 'ai';
+      if (playerResult.type === 'triple' && aiResult.type === 'triple') {
+        if (playerResult.value > aiResult.value) return 'player';
+        if (aiResult.value > playerResult.value) return 'ai';
         return 'draw';
       }
+
+      // Compare pairs
+      if (playerResult.type === 'pair' && aiResult.type === 'pair') {
+        if (playerResult.value > aiResult.value) return 'player';
+        if (aiResult.value > playerResult.value) return 'ai';
+        return 'draw';
+      }
+
+      // If one has a pair and the other doesn't
+      if (playerResult.type === 'pair') return 'player';
+      if (aiResult.type === 'pair') return 'ai';
+
+      // If neither has a valid combination
+      return 'draw';
     }
 
     async function rollUntilValid(diceContainer, playerName) {
