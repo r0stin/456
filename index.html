@@ -170,7 +170,13 @@
       font-size: 1.5rem;
       font-weight: bold;
       box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-      transition: transform 0.3s ease;
+      transition: all 0.3s ease;
+    }
+
+    .dice.scoring {
+      background: #2ecc71;
+      color: white;
+      transform: scale(1.05);
     }
 
     .dice.rolling {
@@ -302,9 +308,9 @@
       return null;
     }
 
-    function createDice(number) {
+    function createDice(number, isScoring = false) {
       const diceDiv = document.createElement('div');
-      diceDiv.className = 'dice';
+      diceDiv.className = 'dice' + (isScoring ? ' scoring' : '');
       diceDiv.textContent = number;
       return diceDiv;
     }
@@ -334,9 +340,32 @@
         if (currentFrame >= animationFrames) {
           clearInterval(interval);
           diceContainer.innerHTML = '';
-          rolls.forEach(roll => {
-            diceContainer.appendChild(createDice(roll));
-          });
+          const result = getDiceResult([...rolls]);
+          
+          if (result) {
+            if (result.type === 'automaticWin' || result.type === 'automaticLoss') {
+              // All dice are scoring for 4-5-6 or 1-2-3
+              rolls.forEach(roll => {
+                diceContainer.appendChild(createDice(roll, true));
+              });
+            } else if (result.type === 'triple') {
+              // All dice are scoring for triples
+              rolls.forEach(roll => {
+                diceContainer.appendChild(createDice(roll, true));
+              });
+            } else if (result.type === 'pair') {
+              // Only the single number is scoring for pairs
+              rolls.forEach(roll => {
+                const isScoring = roll === result.value;
+                diceContainer.appendChild(createDice(roll, isScoring));
+              });
+            }
+          } else {
+            // No scoring combination
+            rolls.forEach(roll => {
+              diceContainer.appendChild(createDice(roll, false));
+            });
+          }
           callback();
         }
       }, 50);
